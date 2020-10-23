@@ -131,6 +131,20 @@ const sketch = ({ context, height, width }) => {
   sides[5].rotateX(Math.PI / 2);
   sides[5].translateZ(70);
 
+  let inc = 0;
+  let downtime = 0;
+  let animating = true;
+  window.addEventListener('pointerdown', () => {
+    downtime = Date.now();
+  });
+  window.addEventListener('pointerup', () => {
+    const elapsed = Date.now() - downtime;
+    if (elapsed < 250) {
+      animating = !animating;
+    }
+    downtime = 0;
+  });
+
   return {
     resize({ viewportWidth, viewportHeight }) {
       const newAspect = viewportWidth / viewportHeight;
@@ -144,15 +158,18 @@ const sketch = ({ context, height, width }) => {
       renderer.setSize(viewportWidth, viewportHeight);
     },
 
-    render({ time }) {
-      if (time > 3 * Math.PI) {
-        const translate = Math.sin(time / 3) * 2 + 1;
+    render() {
+      if (inc > Math.PI) {
+        const translate = Math.sin((inc - Math.PI) / 6) * 2 + 1;
         for (let i = 0; i < 6; i++) {
           const cubes = sides[i].children;
           for (let j = 0; j < cubes.length; j++) {
             cubes[j].position.z = lerp(-cubes[j].userData.offset, 0, translate);
           }
         }
+      }
+      if (animating) {
+        inc += 1 / 16;
       }
       controls.update();
       renderer.render(scene, camera);
